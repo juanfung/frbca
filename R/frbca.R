@@ -164,8 +164,7 @@ compute_loss <- function(loss_name, p, occ_t, fr_t) {
     ## loss_val = loss_val * (1-p[['recapture']])
     loss_val = loss * (1-p[['recapture']]) * fr_t
   } else if (loss_name == 'loss_rental_income') {
-    ##npv_rent = f_npv(t=seq(from=0, to=10), cf=rep(loss * 365, length=11), i=p$delta)
-    npv_rent = 0
+    npv_rent = f_npv_lease(10, loss, p[['delta']])
     loss_val = (npv_rent) + (loss * fr_t)
   } else {
     loss_val = NA
@@ -214,6 +213,18 @@ pv_loss <- function(model, p) {
 #'
 f_npv <- function(t, cf, i) {
   sum( cf / (1 + i)^t )
+}
+
+#' @importFrom stats uniroot
+#'
+#' @export
+#'
+f_npv_lease <- function(N, rent, i) {
+  npv_lease = 0
+  for (n in 1:N) {
+    npv_lease = npv_lease + f_npv(n, rent, i)
+  }
+  return(npv_lease / N)
 }
 
 #' @export
