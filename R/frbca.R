@@ -222,7 +222,7 @@ f_npv <- function(t, cf, i) {
 f_npv_lease <- function(N, rent, i) {
   npv_lease = 0
   for (n in 1:N) {
-    npv_lease = npv_lease + f_npv(n, rent, i)
+    npv_lease = npv_lease + f_npv(n, rent * 12, i)
   }
   return(npv_lease / N)
 }
