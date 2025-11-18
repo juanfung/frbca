@@ -16,6 +16,7 @@ rent_high = 31.73 / days * cpi_ri
 rho = 0.87
 va = 7.97 ## 7.25 * cpi_bi
 delta_va = 0.035
+delta_va_low = delta_va
 delta_va_high = 0.12
 tenant_per_area = 0.0197113
 
@@ -39,61 +40,48 @@ bca_inputs <- list(
     model = input_model_name,
     parameters = list(
         base=list(
-            floor_area=120*120,
-            delta=0.03,
-            T=50,
+          floor_area=120*120,
+          N = 10, # assumed length of building lease
+          delta=0.03,
+          T=50,
           loss=list(
             loss_business_income=(bi_low+bi_high)/2,
             loss_rental_income=rent,
             loss_displacement=112,
-            ##loss_displacement=list(
-            ##  recurring=112,
-            ##  fixed=112),
-            ## tenant=0.021,
-            ## recapture=rho,
-            ## loss_supply_chain=4,
-            loss_value_added=va * (delta_va)
+            loss_test=list(
+              fixed=0,
+              recurring=0),
+            loss_value_added=va * delta_va
           ),
-            ## bi=(bi_low+bi_high)/2,
-            ## ri=rent,
-            ## displacement=112,
-            ## sc=4,
-            tenant=tenant_per_area,
-            recapture=rho
-            ),
+          days=days,
+          cpi=cpi_ri,
+          tenant=tenant_per_area,
+          recapture=rho
+        ),
         sensitivity=list(
           loss=list(
             loss_business_income=list(
               low=bi_low,
               high=bi_high),
-            ## loss_supply_chain=list(
-            ##   low=2,
-            ##   high=10),
-            ## loss_displacement=list(
-            ##   low=list(recurring=53, fixed=53),
-            ##   high=list(recurring=275, fixed=275)),
             loss_rental_income=list(
               low=rent_low,
               high=rent_high),
+            loss_displacement=list(
+              low=53,
+              high=275),
+            loss_test=list(
+               low=list(fixed=0, recurring=0),
+               high=list(fixed=0, recurring=0)),
             loss_value_added=list(
-              low=va * (delta_va),
-              high= va * (delta_va_high))
+              low=va * delta_va_low,
+              high=va * delta_va_high)
             ),
-          ## displacement=list(
-          ##   low=53,
-          ##   high=275),
-          ## sc=list(
-          ##   low=2,
-          ##   high=10),
           delta=list(
                 low=0.07,
                 high=0.02),
             T=list(
                 low=30,
                 high=75)
-            ## bi=list(
-            ##     low=bi_low,
-            ##     high=bi_high)
         )
     )
 )
