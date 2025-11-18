@@ -160,11 +160,13 @@ compute_loss <- function(loss_name, p, occ_t, fr_t) {
     ## loss_val = loss_val * p[['tenant']]
     loss_val = loss * p[['tenant']] * fr_t
     ##loss_val = loss[['recurring']] * p[['tenant']] * fr_t
+  } else if (loss_name == 'loss_test') {
+    loss_val = loss[['fixed']] + (loss[['recurring']] * fr_t)
   } else if (grepl('(business_income|value_added)', loss_name)) {
     ## loss_val = loss_val * (1-p[['recapture']])
     loss_val = loss * (1-p[['recapture']]) * fr_t
   } else if (loss_name == 'loss_rental_income') {
-    npv_rent = f_npv_lease(10, loss, p[['delta']])
+    npv_rent = f_npv_lease(p[['N']], loss, p[['delta']])
     loss_val = (npv_rent) + (loss * fr_t)
   } else {
     loss_val = NA
