@@ -151,7 +151,7 @@ pv_dcost <- function(model, params) {
 
 #' @export
 #'
-compute_loss <- function(loss_name, p, occ_t, fr_t) {
+compute_loss <- function(loss_name, p, occ_t, fr_t, p_unrepairable, p_downtime) {
   ## function to compute loss based on loss_name and parameter values
   ## NOTE: For now, to allow including new loss categories, just have to add computation to this function!
   loss = p[['loss']][[loss_name]]
@@ -161,13 +161,13 @@ compute_loss <- function(loss_name, p, occ_t, fr_t) {
     loss_val = loss * p[['tenant']] * fr_t
     ##loss_val = loss[['recurring']] * p[['tenant']] * fr_t
   } else if (loss_name == 'loss_test') {
-    loss_val = loss[['fixed']] + (loss[['recurring']] * fr_t)
+    loss_val = (loss[['fixed']] * p_downtime) + (loss[['recurring']] * fr_t)
   } else if (grepl('(business_income|value_added)', loss_name)) {
     ## loss_val = loss_val * (1-p[['recapture']])
     loss_val = loss * (1-p[['recapture']]) * fr_t
   } else if (loss_name == 'loss_rental_income') {
     npv_rent = f_npv_lease(p[['N']], loss, p[['delta']])
-    loss_val = (npv_rent) + (loss * fr_t)
+    loss_val = (npv_rent * p_unrepairable) + (loss * fr_t)
   } else {
     loss_val = NA
   }
@@ -200,7 +200,7 @@ pv_loss <- function(model, p) {
   for (loss_name in loss_names[!grepl('supply_chain', loss_names)]) {
     model = model |>
       dplyr::rowwise() |>
-      dplyr::mutate(UQ(loss_name):=compute_loss(loss_name, p, re_occupancy_time, functional_recovery_time)*total_area) |>
+      dplyr::mutate(UQ(loss_name):=compute_loss(loss_name, p, re_occupancy_time, functional_recovery_time, prob_unrepairable, prob_downtime)*total_area) |>
       dplyr::ungroup()
   }
     return(
@@ -217,6 +217,7 @@ f_npv <- function(t, cf, i) {
   sum( cf / (1 + i)^t )
 }
 
+## Calculate NPV of lease, where rent is provided in days, N is number of years, and i is discount rate
 #' @importFrom stats uniroot
 #'
 #' @export
@@ -224,7 +225,7 @@ f_npv <- function(t, cf, i) {
 f_npv_lease <- function(N, rent, i) {
   npv_lease = 0
   for (n in 1:N) {
-    npv_lease = npv_lease + f_npv(n, rent * 12, i)
+    npv_lease = npv_lease + f_npv(n, rent * 365, i)
   }
   return(npv_lease / N)
 }
