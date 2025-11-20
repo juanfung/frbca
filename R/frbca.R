@@ -157,9 +157,7 @@ compute_loss <- function(loss_name, p, occ_t, fr_t, p_unrepairable, p_downtime) 
   loss = p[['loss']][[loss_name]]
   ## loss_val = loss[['value']] * (loss[['time']]*occ_t + (1-loss[['time']])*fr_t)
   if (loss_name == 'loss_displacement') {
-    ## loss_val = loss_val * p[['tenant']]
-    loss_val = loss * p[['tenant']] * fr_t
-    ##loss_val = loss[['recurring']] * p[['tenant']] * fr_t
+    loss_val = (loss[['fixed']] * p_downtime) + (loss[['recurring']] * fr_t)
   } else if (loss_name == 'loss_test') {
     loss_val = (loss[['fixed']] * p_downtime) + (loss[['recurring']] * fr_t)
   } else if (grepl('(business_income|value_added)', loss_name)) {
