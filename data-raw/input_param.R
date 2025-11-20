@@ -47,9 +47,8 @@ bca_inputs <- list(
           loss=list(
             loss_business_income=(bi_low+bi_high)/2,
             loss_rental_income=rent,
-            loss_displacement=112,
-            loss_test=list(
-              fixed=0,
+            loss_displacement=list(
+              fixed=1,
               recurring=0),
             loss_value_added=va * delta_va
           ),
@@ -67,11 +66,8 @@ bca_inputs <- list(
               low=rent_low,
               high=rent_high),
             loss_displacement=list(
-              low=53,
-              high=275),
-            loss_test=list(
-               low=list(fixed=0, recurring=0),
-               high=list(fixed=0, recurring=0)),
+               low=list(fixed=1, recurring=0),
+               high=list(fixed=2, recurring=0)),
             loss_value_added=list(
               low=va * delta_va_low,
               high=va * delta_va_high)
