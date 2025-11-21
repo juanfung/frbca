@@ -8,16 +8,16 @@ input_model_name = 'all'
 days = 365.25
 cpi_bi = 307.1/257 # analysis year = 2023 / base year = 2019
 cpi_ri = 307.1/240 # analysis year = 2023 / base year = 2016
-bi_low = 0.75 ## 0.76 * cpi_bi
+bi_low = 1.08 ## 0.75 ## 0.76 * cpi_bi
 bi_high = 5.42 ## 5.53 * cpi_bi
-rent = 22.06 / days * cpi_ri
-rent_low = 16.15 / days * cpi_ri
-rent_high = 31.73 / days * cpi_ri
-rho = 0.87
-va = 7.97 ## 7.25 * cpi_bi
+rent = 31.30 / days * cpi_ri
+rent_low = 29.23 / days * cpi_ri
+rent_high = 43.04 / days * cpi_ri
+rho = 0.7
+va = 11.55 ## 7.97 ## 7.25 * cpi_bi
 delta_va = 0.035
 delta_va_low = delta_va
-delta_va_high = 0.12
+delta_va_high = 0.15
 tenant_per_area = 0.0197113
 
 ## Parameters
@@ -48,8 +48,8 @@ bca_inputs <- list(
             loss_business_income=(bi_low+bi_high)/2,
             loss_rental_income=rent,
             loss_displacement=list(
-              fixed=1,
-              recurring=0),
+              fixed= 3.5, ## 112 * tenant_per_area,
+              recurring=rent),
             loss_value_added=va * delta_va
           ),
           days=days,
@@ -66,8 +66,12 @@ bca_inputs <- list(
               low=rent_low,
               high=rent_high),
             loss_displacement=list(
-               low=list(fixed=1, recurring=0),
-               high=list(fixed=2, recurring=0)),
+              low=list(
+                fixed= 2, ## 53 * tenant_per_area,
+                recurring=rent_low),
+              high=list(
+                fixed= 5, ## 275 * tenant_per_area,
+                recurring=rent_high)),
             loss_value_added=list(
               low=va * delta_va_low,
               high=va * delta_va_high)
