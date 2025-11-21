@@ -165,7 +165,7 @@ compute_loss <- function(loss_name, p, occ_t, fr_t, p_unrepairable, p_downtime) 
     loss_val = loss * (1-p[['recapture']]) * fr_t
   } else if (loss_name == 'loss_rental_income') {
     npv_rent = f_npv_lease(p[['N']], loss, p[['delta']])
-    loss_val = (npv_rent * p_unrepairable) + (loss * fr_t)
+    loss_val = (npv_rent * p_unrepairable) + (loss * fr_t * (1 - p_unrepairable))
   } else {
     loss_val = NA
   }
