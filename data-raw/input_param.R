@@ -36,7 +36,7 @@ tenant_per_area = 0.0197113
 ## {total_floors, bi_low, bi_high, ri, displacement, tenant}
 ## Provided defaults:
 ## {delta, T, recapture, sc}
-bca_inputs <- list(
+input_param <- list(
     model = input_model_name,
     parameters = list(
         base=list(
