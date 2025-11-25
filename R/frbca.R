@@ -155,15 +155,17 @@ compute_loss <- function(loss_name, p, occ_t, fr_t, p_unrepairable, p_downtime) 
   ## function to compute loss based on loss_name and parameter values
   ## NOTE: For now, to allow including new loss categories, just have to add computation to this function!
   loss = p[['loss']][[loss_name]]
-  ## loss_val = loss[['value']] * (loss[['time']]*occ_t + (1-loss[['time']])*fr_t)
   if (loss_name == 'loss_displacement') {
+    ## loss_val = loss * p[['tenant']] * fr_t
     loss_val = (loss[['fixed']] * p_downtime) + (loss[['recurring']] * fr_t)
   } else if (loss_name == 'loss_test') {
     loss_val = (loss[['fixed']] * p_downtime) + (loss[['recurring']] * fr_t)
-  } else if (grepl('(business_income|value_added)', loss_name)) {
-    ## loss_val = loss_val * (1-p[['recapture']])
+  } else if (grepl('(business_income)', loss_name)) {
     loss_val = loss * (1-p[['recapture']]) * fr_t
+  } else if (grepl('(value_added)', loss_name)) {
+    loss_val = loss * fr_t
   } else if (loss_name == 'loss_rental_income') {
+    ## loss_val = loss * occ_t
     npv_rent = f_npv_lease(p[['N']], loss, p[['delta']])
     loss_val = (npv_rent * p_unrepairable) + (loss * fr_t * (1 - p_unrepairable))
   } else {
