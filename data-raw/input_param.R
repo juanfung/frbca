@@ -15,9 +15,9 @@ rent_low = 29.23 / days * cpi_ri
 rent_high = 43.04 / days * cpi_ri
 rho = 0.7
 va = 11.55 ## 7.97 ## 7.25 * cpi_bi
-delta_va = 0.035
-delta_va_low = delta_va
-delta_va_high = 0.15
+delta_va = 0.08
+delta_va_low = 0.035
+delta_va_high = 0.20
 tenant_per_area = 0.0197113
 
 ## Parameters
