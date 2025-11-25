@@ -515,7 +515,7 @@ plot_bcr_sensitivity <- function(output, systems="RCMF", designs="nonstructural"
   label_begin <- 'Sensitivity Analysis: Benefit-cost ratios for'
   label_end <- 'archetypes, relative to baseline ASCE 7-16 design.'
   ## label_param <- c("Delta", "Business Income", "Displacement", "T")
-  label_param <- c("T", "L_{DC}", "L_{BI}", "\\delta")
+  label_param <- c("T", "L_{P}", "L_{RI}", "L_{DC}", "L_{BI}", "\\delta")
   plot.sen <- postprocess_bcr(output, systems, designs, stories) |>
     dplyr::mutate(
            system=factor(system, levels=systems),
@@ -531,9 +531,7 @@ plot_bcr_sensitivity <- function(output, systems="RCMF", designs="nonstructural"
     ## ggplot2::scale_x_discrete(labels=label_param) +
     ## ggplot2::scale_x_discrete(labels=rev(label_param)) +
     ## ggplot2::scale_x_discrete(labels=lapply(sprintf(r'($%s$)', label_param), TeX)) +
-    ## TEMP COMMENTING OUT SENSITIVITY PLOT LABELS WHILE I REVISE CODE FOR OTHER LOSS CALCULATIONS... ##
-    ##ggplot2::scale_x_discrete(labels=c(expression("T"), expression(L[DC]), expression(L[BI]), expression(delta))) +
-    ## TEMP ##
+    ggplot2::scale_x_discrete(labels=c(expression("T"), expression(L[P]), expression(L[RI]), expression(L[DC]), expression(L[BI]), expression(delta))) +
     ggplot2::coord_flip() +
     ggplot2::facet_wrap(system ~ design, ncol=2) +
     ggplot2::theme_light() +
