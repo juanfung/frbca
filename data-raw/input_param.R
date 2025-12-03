@@ -41,7 +41,7 @@ input_param <- list(
     parameters = list(
         base=list(
           floor_area=120*120,
-          N = 10, # assumed length of building lease
+          N = 5, # assumed length of building lease
           delta=0.03,
           T=50,
           loss=list(
