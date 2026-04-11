@@ -626,7 +626,7 @@ plot_eal_by_loss <- function(output, systems="RCMF", designs="nonstructural", st
 plot_eal <- function(output, systems="RCMF", designs="nonstructural", stories=4, w=FALSE) {
   plot.eal <- postprocess_eal(output, systems, designs, stories) |>
     dplyr::filter(loss_category %in% "loss_total") |>
-    ## dplyr::mutate(loss=ifelse(w==TRUE, loss/project, loss)) |>
+    ## dplyr::mutate(loss=loss/project) |>
     dplyr::mutate(
              system=factor(system, levels=systems),
              design=factor(design, levels=designs),
