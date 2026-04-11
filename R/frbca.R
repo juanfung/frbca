@@ -151,7 +151,7 @@ pv_dcost <- function(model, params) {
 
 #' @export
 #'
-compute_loss <- function(loss_name, p, occ_t, fr_t, p_unrepairable, p_downtime) {
+compute_loss <- function(loss_name, p, occ_t, fr_t, fr_t_repairable,p_unrepairable, p_downtime) {
   ## function to compute loss based on loss_name and parameter values
   ## NOTE: For now, to allow including new loss categories, just have to add computation to this function!
   loss = p[['loss']][[loss_name]]
@@ -167,7 +167,7 @@ compute_loss <- function(loss_name, p, occ_t, fr_t, p_unrepairable, p_downtime) 
   } else if (loss_name == 'loss_rental_income') {
     ## loss_val = loss * occ_t
     npv_rent = f_npv_lease(p[['N']], loss, p[['delta']])
-    loss_val = (npv_rent * p_unrepairable) + (loss * fr_t * (1 - p_unrepairable))
+    loss_val = (npv_rent * p_unrepairable) + (loss * fr_t_repairable)
   } else {
     loss_val = NA
   }
@@ -200,7 +200,7 @@ pv_loss <- function(model, p) {
   for (loss_name in loss_names[!grepl('supply_chain', loss_names)]) {
     model = model |>
       dplyr::rowwise() |>
-      dplyr::mutate(UQ(loss_name):=compute_loss(loss_name, p, re_occupancy_time, functional_recovery_time, prob_unrepairable, prob_downtime)*total_area) |>
+      dplyr::mutate(UQ(loss_name):=compute_loss(loss_name, p, re_occupancy_time, functional_recovery_time, functional_recovery_time_repairable, prob_unrepairable, prob_downtime)*total_area) |>
       dplyr::ungroup()
   }
     return(
