@@ -106,7 +106,8 @@ preprocess_cost <- function(model) {
 #'
 #' @importFrom dplyr mutate
 #'
-#'
+
+
 #' @param model A model
 #' @param params A list of parameters
 #'
@@ -128,6 +129,7 @@ pv_cost <- function(model, params) {
          dplyr::mutate(pv_total=pv_res+pv_ns)
     )
 }
+
 
 ## compute cost delta
 ## pv cost formula:
@@ -211,6 +213,7 @@ pv_loss <- function(model, p) {
 
 #' @importFrom stats uniroot
 #'
+
 #' @export
 #'
 f_npv <- function(t, cf, i) {
@@ -220,6 +223,7 @@ f_npv <- function(t, cf, i) {
 ## Calculate NPV of lease, where rent is provided in days, N is number of years, and i is discount rate
 #' @importFrom stats uniroot
 #'
+
 #' @export
 #'
 f_npv_lease <- function(N, rent, i) {
@@ -232,6 +236,7 @@ f_npv_lease <- function(N, rent, i) {
 
 #' @export
 #'
+
 f_irr <- function(t, cf) {
   ## TODO: introduce error handling
   tryCatch(
@@ -248,6 +253,7 @@ f_irr <- function(t, cf) {
 
 
 #' @export
+#'
 ## pv benefits formula:
 ## (avoided losses) * ( (1 - (1+delta)^(-T)) / delta)
 pv_benefit <- function(model, params, label='base') {
@@ -372,7 +378,8 @@ bca <- function(model, params) {
 #'
 #' @importFrom dplyr bind_rows
 #'
-#'
+
+
 #' @param eal Table of Expected Annualized Losses (EAL)
 #' @param cost Table of Structural, Nonstructural, and Total Construction Costs
 #' @param params List of analysis parameters
@@ -405,6 +412,7 @@ frbca <- function(eal, cost, params) {
 #' @importFrom forcats fct_rev
 #' @importFrom tidyr pivot_wider
 #'
+
 postprocess_bcr <- function(output, systems="RCMF", designs="nonstructural", stories=4, out_base=FALSE) {
   ## function to postprocess output for plotting sensitivity
   ## drop baseline-baseline, if it exists
@@ -443,9 +451,10 @@ postprocess_bcr <- function(output, systems="RCMF", designs="nonstructural", sto
 #' Plot for FR-BCA outputs, for fixed story height and structural system
 #'
 #' @importFrom dplyr filter select left_join rename
-#' @importFrom tidyr pivot_wider
+##' @importFrom tidyr pivot_wider
 #' @import ggplot2
 #'
+
 #'
 #' @param output Output from `frbca()`
 #' @param n_floors Number of stories (for figure title)
@@ -454,6 +463,7 @@ postprocess_bcr <- function(output, systems="RCMF", designs="nonstructural", sto
 #' @return Updated model table including PV(Cost)
 #' @export
 #'
+
 plot_bcr <- function(output, systems="RCMF", designs="nonstructural", stories=4) {
   ## generate plot
   ## TODO: parameterize label (ie, title)
@@ -494,22 +504,27 @@ return(plot.base)
 ###
 #' Plot FR-BCA Outputs with Sensitivity Analysis
 #'
+
 #' @description
 #' Sensitivity analysis plot for FR-BCA outputs, for fixed story height and structural system
 #'
+
 #' @importFrom dplyr filter select left_join rename
 #' @importFrom tidyr pivot_wider
 #' @import ggplot2
 #' @importFrom ggthemes scale_fill_colorblind theme_few
 #'
+
 #'
 #' @param output Output from `frbca()`
 #' @param n_floors Number of stories (for figure title)
 #' @param system Name of structural system being plotted (default: "RCMF")
 #'
+
 #' @return Updated model table including PV(Cost)
 #' @export
 #'
+
 plot_bcr_sensitivity <- function(output, systems="RCMF", designs="nonstructural", stories=4) {
   ## generate plot
   label_begin <- 'Sensitivity Analysis: Benefit-cost ratios for'
@@ -549,12 +564,17 @@ plot_bcr_sensitivity <- function(output, systems="RCMF", designs="nonstructural"
 return(plot.sen)
 }
 
+###
+## Purpose:
+## Post-process data and generate EAL plots for multiple systems
+###
 #' @export
 #'
 #' @importFrom forcats fct_rev
 #' @importFrom dplyr filter select rename mutate
 #' @importFrom tidyr pivot_wider
 #'
+
 postprocess_eal <- function(output, systems="RCMF", designs="nonstructural", stories=4) {
   return(
     output |>
@@ -581,7 +601,6 @@ postprocess_eal <- function(output, systems="RCMF", designs="nonstructural", sto
 #' @import ggplot2
 #' @importFrom scales label_dollar
 #' @importFrom ggthemes scale_fill_colorblind
-#'
 plot_eal_by_loss <- function(output, systems="RCMF", designs="nonstructural", stories=4) {
   ## TODO: add facet_wrap to plot for multiple systems
   ## TODO: do not hardcode axis tick labels, apply formatting
@@ -657,13 +676,14 @@ plot_eal <- function(output, systems="RCMF", designs="nonstructural", stories=4,
 }
 
 
+#' Plot Cost deltas for recovery-based design interventions
 #' @export
 #'
-#' @importFrom dplyr filter select mutate
 #' @import ggplot2
 #' @importFrom scales percent
-#' @importFrom ggthemes scale_fill_colorblind theme_few
+#' @importFrom ggthemes theme_few
 #'
+
 plot_cost_delta <- function(output, systems="RCMF", designs="nonstructural", stories=4) {
   plot.cost.delta <- output |>
     dplyr::filter((system %in% systems) &
@@ -695,4 +715,68 @@ plot_cost_delta <- function(output, systems="RCMF", designs="nonstructural", sto
     ) +
     ggplot2::labs(fill = "Stories")
   return(plot.cost.delta)
+}
+
+#' Apply weighting to EAL data by dividing loss by specified column
+#' @param data Data frame from postprocess_eal with loss column
+#' @param w Column name to divide loss by (NULL for no weighting)
+#' @return Data frame with weighted loss and attribute for y-label
+apply_eal_weighting <- function(data, w=NULL) {
+  if (is.null(w)) {
+    return(data)
+  }
+
+  if (!is.character(w) || length(w) != 1) {
+    stop("Weight parameter 'w' must be a single column name (character)")
+  }
+
+  if (!(w %in% names(data))) {
+    stop(sprintf("Weight column '%s' not found. Available: %s",
+                 w, paste(names(data), collapse=", ")))
+  }
+
+  data |>
+    dplyr::mutate(
+      loss = loss / !!sym(w),
+      .weight_label = paste("EAL /", w)
+    )
+}
+
+#' Plot Weighted EALs by dividing loss by specified column
+#' @export
+#' @import ggplot2
+#' @importFrom scales label_dollar
+#' @importFrom ggthemes theme_few
+plot_eal_weighted <- function(output, systems="RCMF", designs="nonstructural", stories=4, w=NULL) {
+  plot.eal <- postprocess_eal(output, systems, designs, stories) |>
+    dplyr::filter(loss_category %in% "loss_total") |>
+    dplyr::mutate(
+             system=factor(system, levels=systems),
+             design=factor(design, levels=designs),
+             num_stories=factor(num_stories)) |>
+    apply_eal_weighting(w)
+
+  y_label <- attr(plot.eal, ".weight_label", exact=TRUE)
+  if (is.null(y_label)) y_label <- "EAL"
+
+  ggplot(aes(x = num_stories, y = loss, fill = design)) +
+    geom_bar(
+      stat='identity',
+      width = 0.5,
+      position = 'dodge') +
+    facet_wrap(~system) +
+    ggplot2::scale_y_continuous(labels = scales::label_dollar(scale_cut=scales::cut_short_scale())) +
+    labs(
+      x = "Stories",
+      y = y_label) +
+    ggthemes::theme_few() +
+    theme(
+      legend.position = "bottom",
+      legend.text = element_text(size = 12),
+      legend.title = element_text(size = 14),
+      axis.title.x = element_text(size = 13),
+      axis.title.y = element_text(size = 13)
+    ) +
+    labs(fill = "")
+  return(plot.eal)
 }
