@@ -10,6 +10,7 @@ ct <- cols(
   repair_cost = col_double(),
   re_occupancy_time = col_double(),
   functional_recovery_time = col_double(),
+  functional_recovery_time_repairable = col_double(),
   prob_unrepairable = col_double(),
   prob_downtime = col_double()
 )
@@ -30,6 +31,7 @@ vars <- c(
   repair_cost = "Annualized repair cost (dollars)",
   re_occupancy_time = "Annualized re-occupancy time (days)",
   functional_recovery_time = "Annualized functional recovery time (days)",
+  functional_recovery_time_repairable = "Annualized functional recovery time (days), conditional on repairable state",
   prob_unrepairable = "Annualized probability of unrepairable residual drift",
   pro_downtime = "Annualized probability of loss of functionality"
 )

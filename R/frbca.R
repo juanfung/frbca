@@ -54,6 +54,7 @@ label_format <- function(s) {
 }
 
 
+#' @importFrom dplyr pull
 #' @export
 preprocess_model <- function(eal, cost, p) {
     ## Purpose:
@@ -68,11 +69,12 @@ preprocess_model <- function(eal, cost, p) {
       dplyr::left_join(cost, by=join_cols) |>
       dplyr::mutate(total_area=p$floor_area*num_stories) |>
       dplyr::mutate(design=paste(design_s, design_ns, sep="-")) |>
-      dplyr::mutate(design=case_when(
+      dplyr::mutate(design=dplyr::case_when(
                       design %in% "baseline-baseline" ~ "baseline",
                       design %in% "baseline-nsfr" ~ "nonstructural",
                       design %in% paste(names_structural, "baseline", sep="-") ~ "structural",
-                      design %in% paste(names_structural, "nsfr", sep="-") ~ "full"))
+                      design %in% paste(names_structural, "nsfr", sep="-") ~ "full",
+                      TRUE ~ NA_character_))
     systems <- dat |> dplyr::distinct(system) |> pull()
     for (j in systems) {
       dat_j = dat |> dplyr::filter(system == j)
@@ -248,6 +250,8 @@ f_irr <- function(t, cf) {
 }
 
 
+#' @importFrom dplyr across
+#' @importFrom dplyr all_of
 #' @export
 #'
 ## pv benefits formula:
@@ -445,7 +449,7 @@ postprocess_bcr <- function(output, systems="RCMF", designs="nonstructural", sto
 #' Plot for FR-BCA outputs, for fixed story height and structural system
 #'
 #' @importFrom dplyr filter select left_join rename
-##' @importFrom tidyr pivot_wider
+#' @importFrom tidyr pivot_wider
 #' @import ggplot2
 #'
 #'
@@ -607,7 +611,7 @@ plot_eal_by_loss <- function(output, systems="RCMF", designs="nonstructural", st
     ## TODO: Add geom_text labels for dollar amounts
     ggplot2::coord_flip() +
     ggthemes::theme_few(base_size=10) +
-    ggplot2::scale_fill_manual(breaks=rev, values=rev(ggthemes::colorblind_pal()(length(systems)))) +
+    ggplot2::scale_fill_manual(breaks=rev, values=rev(ggthemes::colorblind_pal()(length(designs)))) +
     theme(
       legend.position = "bottom",
       legend.text = element_text(size = 10),
@@ -704,8 +708,13 @@ plot_cost_delta <- function(output, systems="RCMF", designs="nonstructural", sto
 }
 
 #' Apply weighting to EAL data by dividing loss by specified column
+#' @export
+#'
 #' @param data Data frame from postprocess_eal with loss column
 #' @param w Column name to divide loss by (NULL for no weighting)
+#'
+#' @importFrom dplyr case_when
+#'
 #' @return Data frame with weighted loss and attribute for y-label
 #'
 apply_eal_weighting <- function(data, w=NULL) {
@@ -731,6 +740,7 @@ apply_eal_weighting <- function(data, w=NULL) {
 
 #' Plot Weighted EALs by dividing loss by specified column
 #' @export
+#'
 #' @import ggplot2
 #' @importFrom scales label_dollar
 #' @importFrom ggthemes theme_few
@@ -738,15 +748,20 @@ apply_eal_weighting <- function(data, w=NULL) {
 plot_eal_weighted <- function(output, systems="RCMF", designs="nonstructural", stories=4, w=NULL) {
   plot.eal <- postprocess_eal(output, systems, designs, stories) |>
     dplyr::filter(loss_category %in% "loss_total") |>
+    apply_eal_weighting(w) |>
     dplyr::mutate(
              system=factor(system, levels=systems),
              design=factor(design, levels=designs),
-             num_stories=factor(num_stories)) |>
-    apply_eal_weighting(w)
+             num_stories=factor(num_stories))
 
-  y_label <- attr(plot.eal, ".weight_label", exact=TRUE)
-  if (is.null(y_label)) y_label <- "EAL"
+  # Get y-label from the .weight_label column if it exists
+  if (".weight_label" %in% names(plot.eal)) {
+    y_label <- plot.eal$.weight_label[1]  # Get first value since all should be the same
+  } else {
+    y_label <- "EAL"
+  }
 
+  plot.eal = plot.eal |>
   ggplot(aes(x = num_stories, y = loss, fill = design)) +
     geom_bar(
       stat='identity',
