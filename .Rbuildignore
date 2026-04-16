@@ -2,3 +2,9 @@
 ^README\.Rmd$
 ^data-raw$
 ^data-raw/.+$
+^analysis$
+^analysis/.+$
+^tools$
+^tools/.+$
+^data/processed$
+^data/processed/.+$

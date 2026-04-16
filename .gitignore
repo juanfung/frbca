@@ -4,3 +4,7 @@
 .httr-oauth
 .DS_Store
 git_push_all.sh
+analysis/output/
+analysis/reports/bookdown/_book/
+analysis/reports/bookdown/_bookdown_files/
+data/processed/
