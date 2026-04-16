@@ -9,10 +9,10 @@ p <- out_frbca |>
   dplyr::select(system, num_stories, design, total_area,
                 bcr, npv, aroi, irr) |>
   dplyr::mutate(
-           bcr=scales::number(bcr, accuracy=0.01),
-           npv=scales::dollar(npv),
-           aroi=scales::percent(aroi, accuracy=0.01),
-           irr=scales::percent(irr, accuracy=0.01)) |>
+           bcr=scales::number(bcr, accuracy=0.1),
+           npv=scales::dollar(npv, accuracy=1000),
+           aroi=scales::percent(aroi, accuracy=0.1),
+           irr=scales::percent(irr, accuracy=0.1)) |>
   dplyr::select(!total_area) |>
   flextable::flextable() |>
   flextable::align(align = "right", part = "all")

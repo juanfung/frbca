@@ -40,9 +40,9 @@ bca_inputs <- frbca::input_param
 out_frbca <- frbca::frbca(input_eal, input_cost, bca_inputs)
 
 ## Variables for figure generation
-c_plot_systems <- c("RCMF", "RCSW")
+c_plot_systems <- c("RCMF", "RCSW", "SMF", "BRBF")
 b_plot_designs <- c("baseline", "structural", "nonstructural")
-c_plot_designs <- c("baseline", "structural", "nonstructural")
+c_plot_designs <- c("structural", "nonstructural", "full")
 c_plot_stories <- c(4, 12)
 f_plot_designs <- c("baseline", "structural", "nonstructural")
 
@@ -50,6 +50,7 @@ f_plot_designs <- c("baseline", "structural", "nonstructural")
 c_plot_systems_tables <- c("RCMF", "RCSW", "SMF", "BRBF")
 c_plot_stories_tables <- c(4, 12)
 c_plot_designs_tables <- c("structural", "nonstructural", "full")
+c_plot_designs_unit_costs <- c("baseline", "structural", "nonstructural", "full")
 fr_plot_designs <- c("baseline", "structural", "nonstructural")
 fr_full_designs <- c("baseline", "structural", "nonstructural", "full")
 tn_plot_stories <- c(4, 8, 12, 18, 20)

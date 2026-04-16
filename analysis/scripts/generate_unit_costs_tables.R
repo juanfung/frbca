@@ -4,14 +4,14 @@
 # Assume out_frbca is available in the environment
 p <- out_frbca |>
   dplyr::bind_rows() |>
-  dplyr::filter(label == 'base' & design == 'baseline') |>
+  dplyr::filter(label == 'base' & design %in% c_plot_designs_unit_costs) |>
   dplyr::filter(num_stories %in% c_plot_stories_tables) |>
   dplyr::mutate(
            c_s=scales::number(c_s/total_area, accuracy=0.01),
            c_ns=scales::number(c_ns/total_area, accuracy=0.01),
            c_c=scales::number(construction/total_area, accuracy=0.01),
            c_p=scales::number(project/total_area, accuracy=0.01)) |>
-  dplyr::select(system, num_stories, c_s, c_ns, c_c, c_p) |>
+  dplyr::select(system, num_stories, design, c_s, c_ns, c_c, c_p) |>
   flextable::flextable() |>
   flextable::align(align = "right", part = "all")
 

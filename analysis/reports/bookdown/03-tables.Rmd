@@ -351,6 +351,13 @@ ft_fr_full_bar = flextable::set_table_properties(ft_fr_full_bar,
                                              width=1,
                                              layout="autofit")
 
+# Save a standalone copy alongside other generated analysis tables.
+dir.create(here::here("analysis", "output", "tables"), recursive = TRUE, showWarnings = FALSE)
+flextable::save_as_docx(
+  ft_fr_full_bar,
+  path = here::here("analysis", "output", "tables", "table-performance-full.docx")
+)
+
 ft_fr_full_bar
 
 
@@ -388,6 +395,13 @@ ft_fr_full_numerical <- flextable::set_header_labels(
 ft_fr_full_numerical = flextable::set_table_properties(ft_fr_full_numerical,
                                              width=1,
                                              layout="autofit")
+
+# Save a standalone numerical copy alongside other generated analysis tables.
+dir.create(here::here("analysis", "output", "tables"), recursive = TRUE, showWarnings = FALSE)
+flextable::save_as_docx(
+  ft_fr_full_numerical,
+  path = here::here("analysis", "output", "tables", "table-performance-full-numerical.docx")
+)
 
 ft_fr_full_numerical
 
