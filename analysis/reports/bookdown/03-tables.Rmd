@@ -1,0 +1,395 @@
+# Results tables
+
+For tips on flextable, see https://ardata-fr.github.io/flextable-book/layout.html
+
+```{r frbca-analyze, echo=FALSE, include=FALSE}
+############################
+## ANALYSIS WITH TEST DATA:
+## test_frbca <- frbca::frbca(test_eal, test_cost, bca_inputs)
+############################
+
+## full analysis
+out_frbca <- frbca::frbca(input_eal, input_cost, input_param)
+
+## system.time(test_time <- frbca::frbca(test_eal, test_cost, bca_inputs))
+
+c_plot_systems = c("RCMF", "RCSW", "SMF", "BRBF")
+c_plot_stories = c(4, 12)
+c_plot_designs = c("structural", "nonstructural", "full")
+
+```
+
+## Tabulate all economic metrics from output
+
+```{r table-frbca-all-metrics, tab.cap='Economic metrics', tab.id='tab-econ-metrics', echo=FALSE}
+## placeholder to test code
+ft_metrics = out_frbca |>
+  dplyr::bind_rows() |>
+  dplyr::filter(label=='base' & design %in% c_plot_designs) |>
+  dplyr::filter(num_stories %in% c_plot_stories) |>
+  dplyr::select(system, num_stories, design, total_area,
+                bcr, npv, aroi, irr) |>
+  dplyr::mutate(
+           bcr=scales::number(bcr, accuracy=0.01),
+           npv=scales::dollar(npv),
+           ## npv=scales::dollar(npv/total_area),
+           aroi=scales::percent(aroi, accuracy=0.01),
+           irr=scales::percent(irr, accuracy=0.01)) |>
+  dplyr::select(!total_area) |>
+  flextable::flextable() |>
+  flextable::align(align="right", part="all")
+
+ft_metrics = flextable::set_table_properties(ft_metrics,
+                                             width=1,
+                                             layout="autofit")
+
+ft_metrics
+
+```
+
+## Tabulate baseline unit costs
+
+```{r table-frbca-unit-cost, tab.cap='Unit costs', tab.id='tab-unit-costs', echo=FALSE}
+ft_unit_c = out_frbca |>
+  dplyr::bind_rows() |>
+  dplyr::filter(label == 'base' & design == 'baseline') |>
+  dplyr::filter(num_stories %in% c_plot_stories) |>
+  dplyr::mutate(
+           c_s=scales::number(c_s/total_area, accuracy=0.01),
+           c_ns=scales::number(c_ns/total_area, accuracy=0.01),
+           c_c=scales::number(construction/total_area, accuracy=0.01),
+           c_p=scales::number(project/total_area, accuracy=0.01)) |>
+  dplyr::select(system, num_stories, c_s, c_ns, c_c, c_p) |>
+  flextable::flextable() |>
+  flextable::align(align="right", part="all")
+
+ft_unit_c = flextable::set_table_properties(ft_unit_c,
+                                             width=1,
+                                             layout="autofit")
+
+ft_unit_c
+
+```
+
+```{r table-frbca-unit-cost-all, tab.cap='Unit costs for all archetypes', tab.id='tab-unit-costs-all', echo=FALSE}
+## now including 18-story BRBF and 20-story RCMF, RCSW, and SMF
+## out_pre = frbca::preprocess_model(input_eal, input_cost, bca_inputs[["parameters"]][["base"]])
+## out_df = list()
+## for (s in names(out_pre)) {
+##   out_df[[s]] = dplyr::bind_rows(out_pre[[s]])
+## }
+## out_df = dplyr::bind_rows(out_df)
+
+
+## manually
+names_structural = c("RC III", "RC IV", "backup-frame")
+floor_area = bca_inputs[["parameters"]][["base"]][["floor_area"]]
+
+out_cost = input_cost |>
+  dplyr::mutate(total_area=floor_area*num_stories) |>
+  dplyr::mutate(design=paste(design_s, design_ns, sep="-")) |>
+  dplyr::mutate(design=case_when(
+                  design %in% "baseline-baseline" ~ "baseline",
+                  design %in% "baseline-nsfr" ~ "nonstructural",
+                  design %in% paste(names_structural, "baseline", sep="-") ~ "structural",
+                  design %in% paste(names_structural, "nsfr", sep="-") ~ "full"))
+
+ft_unit_ca = out_cost |>
+  ## dplyr::bind_rows() |>
+  ## dplyr::filter(label == 'base') |>
+  ## dplyr::filter(num_stories %in% c_plot_stories) |>
+  dplyr::mutate(
+           c_s=scales::number(c_s/total_area, accuracy=1),
+           c_ns=scales::number(c_ns/total_area, accuracy=1),
+           c_c=scales::number(construction/total_area, accuracy=1),
+           c_p=scales::number(project/total_area, accuracy=1)) |>
+  dplyr::select(system, num_stories, design, c_s, c_ns, c_c, c_p) |>
+  flextable::flextable() |>
+  flextable::align(align="right", part="all")
+
+ft_unit_ca = flextable::set_table_properties(ft_unit_ca,
+                                             width=1,
+                                             layout="autofit")
+
+ft_unit_ca
+
+```
+
+
+### Tabulate cost deltas
+
+
+```{r table-frbca-cost-deltas, tab.cap='Cost deltas', tab.id='tab-delta-costs', echo=FALSE}
+ft_delta_c = out_frbca |>
+  dplyr::bind_rows() |>
+  dplyr::filter(label == 'base' & design %in% c_plot_designs) |>
+  dplyr::filter(num_stories %in% c_plot_stories) |>
+  dplyr::select(system, num_stories, design, cost_delta) |>
+  dplyr::mutate(cost_delta=scales::percent(cost_delta, accuracy=0.01)) |>
+  tidyr::pivot_wider(names_from='design', values_from='cost_delta') |>
+  flextable::flextable() |>
+  flextable::align(align="right", part="all")
+
+ft_delta_c = flextable::set_table_properties(ft_delta_c,
+                                             width=1,
+                                             layout="autofit")
+
+ft_delta_c
+
+```
+
+
+```{r table-frbca-cost-deltas-all, tab.cap='Cost deltas for all design interventions', tab.id='tab-delta-costs-all', echo=FALSE}
+ft_delta_ca = out_frbca |>
+  dplyr::bind_rows() |>
+  dplyr::filter(label == 'base' & design %in% c_plot_designs) |>
+  ## dplyr::filter(num_stories %in% c_plot_stories) |>
+  dplyr::select(system, num_stories, design, cost_delta) |>
+  dplyr::mutate(cost_delta=scales::percent(cost_delta, accuracy=0.01)) |>
+  tidyr::pivot_wider(names_from='design', values_from='cost_delta') |>
+  flextable::flextable() |>
+  flextable::align(align="right", part="all")
+
+ft_delta_ca = flextable::set_table_properties(ft_delta_ca,
+                                             width=1,
+                                             layout="autofit")
+
+ft_delta_ca
+
+```
+
+
+## Tabulate performance assessment results
+
+```{r table-frbca-performance-linerange, tab.cap='Annualized repair costs and functional recovery times (linerange)', tab.id='tab-performance-linerange', echo=FALSE}
+## tabulate repair costs and fr times for each system-height-design combination
+## baseline, structural, nonstructural
+
+fr_plot_designs = c("baseline", "structural", "nonstructural")
+tn_plot_stories = c(4, 8, 12,18, 20)
+T = bca_inputs$parameters$base$T
+
+ft_fr = out_frbca |>
+  dplyr::bind_rows() |>
+  dplyr::filter(label == 'base' & design %in% fr_plot_designs) |>
+  ## dplyr::filter(num_stories %in% tn_plot_stories) |>
+  dplyr::select(system, num_stories, design, total_area,
+                repair_cost, re_occupancy_time, functional_recovery_time) |>
+  ## dplyr::mutate(
+  ##          repair_cost=scales::dollar(repair_cost, accuracy=0.01),
+  ##          re_occupancy_time=scales::number(re_occupancy_time, accuracy=0.01),
+  ##          functional_recovery_time=scales::number(functional_recovery_time, accuracy=0.01)
+  ##          ) |>
+  ## dplyr::mutate(
+  ##          repair_cost=scales::number(repair_cost/total_area, accuracy=0.01),
+  ##          re_occupancy_time=re_occupancy_time * T,
+  ##          functional_recovery_time=functional_recovery_time * T
+  ##          ) |>
+  dplyr::select(!c(total_area, re_occupancy_time)) |>
+  ## NB: Tried adding grouped max but didn't work...perhaps group_by works directly on ft_ft?
+  ## dplyr::group_by(system, num_stories) |>
+  ## dplyr::mutate(
+  ##          max_repair_cost=max(repair_cost),
+  ##          max_fr_time=max(functional_recovery_time)) |>
+  ## dplyr::ungroup() |>
+  flextable::flextable() |>
+  flextable::align(align="right", part="all")
+
+ft_fr <- flextable::set_header_labels(
+                      ft_fr,
+                      repair_cost = "Repair cost",
+                      ## re_occupancy_time = "Reoccupancy",
+                      functional_recovery_time = "FR time"
+                    )
+
+ft_fr = ft_fr |>
+  ## NB: The answer is **no**
+  ## dplyr::group_by(system, num_stories) |>
+  flextable::mk_par(j = 4,
+               value = as_paragraph(
+                 linerange(
+                   value = repair_cost,
+                   min = 0,
+                   max = max(repair_cost),
+                   height = .15)
+               ),
+               part = "body") |>
+  flextable::mk_par(j = 5,
+                    value = as_paragraph(
+                      linerange(
+                        value = functional_recovery_time,
+                        min = 0,
+                        max = max(functional_recovery_time),
+                        height = .15)
+                    ),
+                    part = "body") 
+
+ft_fr = flextable::set_table_properties(ft_fr,
+                                             width=1,
+                                             layout="autofit")
+
+ft_fr
+
+
+```
+
+
+```{r table-frbca-performance-minibar, tab.cap='Annualized repair costs and functional recovery times (minibar)', tab.id='tab-performance-minibar', echo=FALSE}
+## tabulate repair costs and fr times for each system-height-design combination
+## baseline, structural, nonstructural
+
+fr_plot_designs = c("baseline", "structural", "nonstructural")
+T = bca_inputs$parameters$base$T
+
+ft_fr = out_frbca |>
+  dplyr::bind_rows() |>
+  dplyr::filter(label == 'base' & design %in% fr_plot_designs) |>
+  dplyr::filter(num_stories %in% c_plot_stories) |>
+  dplyr::select(system, num_stories, design, total_area,
+                repair_cost, re_occupancy_time, functional_recovery_time) |>
+  dplyr::select(!c(total_area, re_occupancy_time)) |>
+  flextable::flextable() |>
+  flextable::align(align="right", part="all")
+
+ft_fr <- flextable::set_header_labels(
+                      ft_fr,
+                      repair_cost = "Repair cost",
+                      ## re_occupancy_time = "Reoccupancy",
+                      functional_recovery_time = "FR time"
+                    )
+
+ft_fr = ft_fr |>
+  flextable::mk_par(j = 4,
+               value = as_paragraph(
+                 minibar(
+                   value = repair_cost,
+                   ## min = 0,
+                   max = max(repair_cost),
+                   height = .15)
+               ),
+               part = "body") |>
+  flextable::mk_par(j = 5,
+                    value = as_paragraph(
+                      minibar(
+                        value = functional_recovery_time,
+                        ## min = 0,
+                        max = max(functional_recovery_time),
+                        height = .15)
+                    ),
+                    part = "body")
+
+ft_fr = flextable::set_table_properties(ft_fr,
+                                             width=1,
+                                             layout="autofit")
+
+ft_fr
+
+
+```
+```{r table-frbca-performance-full, tab.cap='Annualized repair costs, reoccupancy times, and functional recovery times', tab.id='tab-performance', echo=FALSE}
+
+fr_full_designs = c("baseline", "structural", "nonstructural", "full")
+
+ft_fr_full = out_frbca |>
+  dplyr::bind_rows() |>
+  dplyr::filter(label == 'base' &
+                design %in% fr_full_designs) |>
+  dplyr::filter(num_stories %in% c_plot_stories) |>
+  dplyr::select(system, num_stories, design, total_area,
+                repair_cost, re_occupancy_time, functional_recovery_time) |>
+  ## dplyr::mutate(
+  ##          repair_cost=scales::dollar(repair_cost, accuracy=0.01),
+  ##          re_occupancy_time=scales::number(re_occupancy_time, accuracy=0.01),
+  ##          functional_recovery_time=scales::number(functional_recovery_time, accuracy=0.01)
+  ##          ) |>
+  ## dplyr::mutate(
+  ##          repair_cost=scales::number(repair_cost/total_area, accuracy=0.01),
+  ##          re_occupancy_time=re_occupancy_time * T,
+  ##          functional_recovery_time=functional_recovery_time * T
+  ##          ) |>
+  dplyr::select(!c(total_area)) |>
+  flextable::flextable() |>
+  flextable::align(align="right", part="all")
+
+ft_fr_full <- flextable::set_header_labels(
+                      ft_fr_full,
+                      repair_cost = "Repair cost",
+                      re_occupancy_time = "Reoccupancy",
+                      functional_recovery_time = "FR time"
+                    )
+
+ft_fr_full_bar = ft_fr_full |>
+  flextable::mk_par(j = 4,
+               value = as_paragraph(
+                 minibar(
+                   value = repair_cost,
+                   max = max(repair_cost),
+                   barcol = "#000000",
+                   height = .15)
+               ),
+               part = "body") |>
+  flextable::mk_par(j = 5,
+                    value = as_paragraph(
+                      minibar(
+                        value = re_occupancy_time,
+                        max = max(re_occupancy_time),
+                        barcol = "#E69F00",
+                        height = .15)
+                    ),
+                    part = "body") |>
+  flextable::mk_par(j = 6,
+                  value = as_paragraph(
+                    minibar(
+                      value = functional_recovery_time,
+                      max = max(functional_recovery_time),
+                      barcol = "#56B4E9",
+                      height = .15)
+                  ),
+                    part = "body")
+
+ft_fr_full_bar = flextable::set_table_properties(ft_fr_full_bar,
+                                             width=1,
+                                             layout="autofit")
+
+ft_fr_full_bar
+
+
+```
+
+```{r table-frbca-performance-full-numerical, tab.cap='Annualized repair costs, reoccupancy times, and functional recovery times, numerical presentation', tab.id='tab-performance-numerical', echo=FALSE}
+
+ft_fr_full_numerical = out_frbca |>
+  dplyr::bind_rows() |>
+  dplyr::filter(label == 'base' &
+                design %in% fr_full_designs) |>
+  ## dplyr::filter(num_stories %in% c_plot_stories) |>
+  dplyr::select(system, num_stories, design, total_area,
+                repair_cost, re_occupancy_time, functional_recovery_time) |>
+  dplyr::mutate(
+           repair_cost=scales::dollar(repair_cost, accuracy=0.01),
+           re_occupancy_time=scales::number(re_occupancy_time, accuracy=0.01),
+           functional_recovery_time=scales::number(functional_recovery_time, accuracy=0.01)
+           ) |>
+  ## dplyr::mutate(
+  ##          repair_cost=scales::number(repair_cost/total_area, accuracy=0.01),
+  ##          re_occupancy_time=re_occupancy_time * T,
+  ##          functional_recovery_time=functional_recovery_time * T
+  ##          ) |>
+  dplyr::select(!c(total_area)) |>
+  flextable::flextable() |>
+  flextable::align(align="right", part="all")
+
+ft_fr_full_numerical <- flextable::set_header_labels(
+                      ft_fr_full_numerical,
+                      repair_cost = "Repair cost",
+                      re_occupancy_time = "Reoccupancy",
+                      functional_recovery_time = "FR time"
+                    )
+ft_fr_full_numerical = flextable::set_table_properties(ft_fr_full_numerical,
+                                             width=1,
+                                             layout="autofit")
+
+ft_fr_full_numerical
+
+
+```

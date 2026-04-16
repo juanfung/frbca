@@ -1,0 +1,115 @@
+---
+title: "FR-BCA: Word Tables"
+author: "Juan F. Fung"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+documentclass: book
+mainfont: Times New Roman
+biblio-style: apalike
+link-citations: yes
+description: "This is a placeholder Word document to hold R-generated tables (and potentially figures) for use in Word journal article templates."
+---
+
+```{r include=FALSE}
+## copied from officedown example
+library(knitr)
+library(officedown)
+library(officer)
+opts_chunk$set(echo = TRUE, tab.lp="Table:", fig.lp="Figure:")
+fp <- fp_par(text.align = "center", padding = 20, border.bottom = fp_border())
+ft <- fp_text(font.size = 12, bold = TRUE, color = "#C32900", font.family = "Times New Roman")
+
+options(knitr.kable.NA = '')
+## options(scipen=999, digits=3, knitr.table.format="latex")
+
+## load reticulate and other packages
+library(pacman)
+pacman::p_load(
+          "here",
+          "devtools",
+          "usethis",
+          "tidyverse",
+          "reticulate",
+          "flextable",
+          "kableExtra"
+          )
+
+## TODO: INCLUDE HELPER FUNCTION TO FORMAT NAMES IN PKG
+my_name_repair <- function(name) {
+  return(gsub('__days', '',
+              tolower(gsub('(\\s+|\\(|\\?|-|/)', '_', gsub('\\)', '', name)))))
+}
+
+
+########################################################################
+#### STEPS TO TEST AND LOAD LOCAL DEV VERSION OF PACKAGE ####
+## 1. usethis::proj_activate(PATH)
+## 2. devtools::load_all()
+## 3. devtools::document()
+## 4. devtools::check()
+## 5. push to gh!
+
+# Activate the frbca project from the parent directory
+usethis::proj_activate(here::here())
+path_frbca = here::here()
+
+## load package
+devtools::load_all(path_frbca)
+
+## Source the analysis setup script that defines variables, runs analysis, and generates all figures/tables
+source(here::here("analysis/scripts/run_analysis.R"))
+
+
+########################################################################
+
+## TO LOAD FROM LOCAL OR GITHUB:
+## devtools::install_github(here('r/pkgs/frbca'))
+## devtools::install_github("juanfung/frbca")
+
+```
+
+
+# Background
+
+This document is written using the R package **bookdown** and R package **officedown**.
+The goal is to generate Word tables using the `flextable` package.
+
+
+
+<!-- ```{r load-data, echo=FALSE, include=FALSE} -->
+<!-- ## path to inputs -->
+<!-- path_inputs = here('data', 'processed', 'model-inputs', 'inspire') -->
+
+<!-- input_eal = readr::read_csv(file.path(path_inputs, 'input-eal-inspire.csv'), -->
+<!--                             name_repair=my_name_repair) %>% -->
+<!--   dplyr::rename_with(~stringr::str_remove(., '__days')) -->
+
+<!-- input_cost = readr::read_csv(file.path(path_inputs, 'input-cost-inspire.csv'), -->
+<!--                              name_repair=my_name_repair) %>% -->
+<!--   dplyr::rename(c_s = structural, c_ns = nonstructural) -->
+
+<!-- input_param = readRDS(file.path(path_inputs, 'input-param-inspire.rds')) -->
+
+<!-- ``` -->
+
+<!-- ```{r frbca-output, echo=FALSE, include=FALSE} -->
+<!-- ## run analysis and save output -->
+<!-- output <- frbca::frbca(input_eal, input_cost, input_param) -->
+
+<!-- ``` -->
+
+<!-- ```{r tab.cap='rcmf-example', tab.id='rcmf-example', echo=FALSE} -->
+<!-- ft <- output %>% -->
+<!--   dplyr::filter(!is.na(bcr) & num_stories == 4 & label == "base") %>% -->
+<!--   dplyr::select(model, delta_loss, benefit) %>% -->
+<!--   dplyr::mutate_if(is.numeric, -->
+<!--                    scales::dollar, -->
+<!--                    accuracy=0.01) %>% -->
+<!--   flextable::flextable() %>% -->
+<!--   flextable::align(align="right", part="all") -->
+
+<!-- ft <- flextable::set_table_properties(ft, width = 1, layout = "autofit") -->
+<!-- ft -->
+
+
+<!-- ``` -->
